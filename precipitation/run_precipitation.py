@@ -303,7 +303,6 @@ def main(args, ds_init):
 
     model.load_checkpoint_local("../aurora-0.25-pretrained.ckpt", strict=False)
     model.configure_activation_checkpointing()
-    # mark_only_lora_as_trainable(model)
 
     
     model.to(device)
