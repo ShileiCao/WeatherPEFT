@@ -291,7 +291,6 @@ def main(args, ds_init):
     print('number of ours params:', n_parameters)
 
     model.load_checkpoint_local("../aurora-0.25-pretrained.ckpt", strict=False)
-    # mark_only_lora_as_trainable(model)
     
     mean = np.load("../aux_data/normalize_mean.npz")
     std = np.load("../aux_data/normalize_std.npz")

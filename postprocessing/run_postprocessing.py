@@ -31,16 +31,6 @@ import multiprocessing as mp
 
 from dataset.score import CrpsGaussianLoss, EECRPSGaussianLoss
 
-# torch.autograd.set_detect_anomaly(True)
-def mark_only_lora_as_trainable(model: nn.Module) -> None:
-    for n, p in model.named_parameters():
-        if 'lora_' not in n and "encoder." not in n and "decoder." not in n:
-            p.requires_grad = False
-
-    for n, p in model.named_parameters():
-        if 'bias' in n:
-            p.requires_grad = True
-    return model
 
 def mark_linear_trainable(model: nn.Module) -> None:
     for n, p in model.named_parameters():
