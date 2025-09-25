@@ -28,33 +28,6 @@ from aurora.batch import interpolate_numpy
 from datetime import timedelta
 import multiprocessing as mp
 
-
-def mark_linear_trainable(model: nn.Module) -> None:
-    for n, p in model.named_parameters():
-        if "encoder." in n or "decoder." in n:
-            p.requires_grad = True
-        else:
-            p.requires_grad = False
-    return model
-
-def mark_bias_trainable(model: nn.Module) -> None:
-    
-    for n, p in model.named_parameters():
-        if 'bias' in n or "encoder." in n or "decoder." in n:
-            p.requires_grad = True
-        else:
-            p.requires_grad = False
-    return model
-
-def mark_only_peft_as_trainable(model: nn.Module, mode) -> None:
-    for n, p in model.named_parameters():
-        if mode not in n and "encoder." not in n and "decoder." not in n:
-            p.requires_grad = False
-
-    for n, p in model.named_parameters():
-        if 'bias' in n:
-            p.requires_grad = True
-    return model
     
     
 def get_args():
@@ -298,8 +271,6 @@ def main(args, ds_init):
                     task = "pre",
                     ours_prompt_length=20
                 )
-    n_parameters = sum(p.numel() for name, p in model.named_parameters() if 'ours' in name or ("backbone" in name and 'bias' in name))
-    print('number of ours params:', n_parameters)
 
     model.load_checkpoint_local("../aurora-0.25-pretrained.ckpt", strict=False)
     model.configure_activation_checkpointing()
@@ -333,10 +304,8 @@ def main(args, ds_init):
     skip_weight_decay_list = model.no_weight_decay()
 
     if args.distributed:
-        if args.mode == 'aprompt':
-            model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[args.gpu], find_unused_parameters=True)
-        else:
-            model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[args.gpu], find_unused_parameters=False)
+
+        model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[args.gpu], find_unused_parameters=False)
         model_without_ddp = model.module
 
     optimizer = create_optimizer(
@@ -377,8 +346,6 @@ def main(args, ds_init):
                 f.write(json.dumps(copy_log) + "\n" + "\n")
         exit(0)
         
-    peft_params = sum(p.numel() for name, p in model.named_parameters() if args.mode in name or ("backbone" in name and 'bias' in name))
-    print(f'number of {args.mode} params:', peft_params)
     print(f"Start training for {args.epochs} epochs")
     start_time = time.time()
     train_time_only = 0
@@ -409,8 +376,7 @@ def main(args, ds_init):
                                                         static_vars = static_vars, surf_vars=surf_vars, upper_vars=upper_vars, model_name=args.model,mode=args.mode)
             
         log_stats = {'epoch': epoch,
-                    **{f'train_{k}': v for k, v in train_stats.items()},
-                    'n_parameters': n_parameters}
+                    **{f'train_{k}': v for k, v in train_stats.items()}}
         test_log = {**{f'val_{k}': v for k, v in test_stats.items()}}
         
         copy_log = " &"+" &".join([str(round(v, 3)) for k, v in test_stats.items() if k!="valid_loss"])
@@ -426,7 +392,6 @@ def main(args, ds_init):
     total_time = time.time() - start_time
     total_time_str = str(datetime.timedelta(seconds=int(total_time)))
     train_time_str = str(datetime.timedelta(seconds=int(train_time_only)))
-    print(f'Number of training params: {n_parameters/1e6}M')
     print('Training time only {}'.format(train_time_str))
     print('Total time {}'.format(total_time_str))
 
@@ -435,7 +400,6 @@ def main(args, ds_init):
         if log_writer is not None:
             log_writer.flush()
         with open(os.path.join(args.output_dir, "log.txt"), mode="a", encoding="utf-8") as f:
-            f.write(json.dumps(f'Number of training params: {n_parameters/1e6}M') + "\n")
             f.write(json.dumps('Training time only {}'.format(train_time_str) + "\n"))
             f.write(json.dumps('Total time {}'.format(total_time_str)) + "\n")
 
