@@ -119,3 +119,18 @@ for downscaling task.
 ## Acknowledgement
 
 We thank the developers and authors of [Aurora](https://github.com/microsoft/aurora) for releasing their pre-trained model and [VideoMAE](https://github.com/MCG-NJU/VideoMAE) for releasing their helpful training framework.
+
+## Citation
+
+If you use WeatherPEFT in your research or wish to refer to the baseline results, please use the following BibTeX entry.
+
+```BibTeX
+@inproceedings{
+cao2026taskadaptive,
+title={Task-Adaptive Parameter-Efficient Fine-Tuning for Weather Foundation Models},
+author={Shilei Cao and Hehai Lin and Jiashun Cheng and Yang Liu and Guowen Li and Xuehe Wang and Juepeng Zheng and Haoyuan Liang and Meng Jin and Chengwei Qin and Hong Cheng and Haohuan Fu},
+booktitle={The Fourteenth International Conference on Learning Representations},
+year={2026},
+url={https://openreview.net/forum?id=eFExhM3tKr}
+}
+```
