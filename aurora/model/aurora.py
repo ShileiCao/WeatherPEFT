@@ -406,7 +406,7 @@ class Aurora(torch.nn.Module):
                     print(f"load 10v decoder weight for V10M")
                     
                 elif name == "msl" and "MSL" in self.surf_vars:
-                    nmae = "MSL"
+                    name = "MSL"
                     print(f"load msl decoder weight for MSL")
                     
                 d[f"decoder.surf_heads.{name}.weight"] = weight[:, i]
